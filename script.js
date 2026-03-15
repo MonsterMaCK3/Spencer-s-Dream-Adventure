@@ -21,10 +21,8 @@ const config = {
 const game = new Phaser.Game(config);
 
 function preload() {
-    // Load your assets from the /assets folder
-    // Make sure the file names match exactly!
-    this.load.image('sky', 'assets/sky.png');
-    this.load.image('gf', 'assets/gf.png');
+    this.load.image('sky', './assets/sky.png');
+    this.load.image('gf', './assets/gf.png');
 }
 
 function create() {
