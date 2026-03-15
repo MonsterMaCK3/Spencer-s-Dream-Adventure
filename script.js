@@ -42,7 +42,7 @@ function create() {
 
     // Create player sprite
     this.player = this.physics.add.sprite(100, 300, "gf");
-    this.player.setScale(0.5); // Adjusted scale for mobile visibility
+    this.player.setScale(1.1); // Adjusted scale for mobile visibility
     this.player.setCollideWorldBounds(true);
 
     // Input: Click / tap to jump
