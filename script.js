@@ -1,11 +1,11 @@
 // 1. Game Configuration
 const config = {
     type: Phaser.AUTO,
-    // Add Resolution for crisp rendering on high-DPR mobile screens
+    // High-resolution support for crisp mobile sprites
     resolution: window.devicePixelRatio || 1,
     scale: {
-        mode: Phaser.Scale.FIT, // Auto-fits the screen while keeping aspect ratio
-        autoCenter: Phaser.Scale.CENTER_BOTH, // Centers the game horizontally and vertically
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
         width: 400,
         height: 600,
         parent: "game-container",
@@ -27,7 +27,7 @@ const config = {
 // 2. Start the Phaser Game
 const game = new Phaser.Game(config);
 
-// 3. Load Assets (Using relative paths for GitHub Pages)
+// 3. Load Assets
 function preload() {
     this.load.image("sky", "./assets/sky.png");
     this.load.image("gf", "./assets/gf.png");
@@ -37,12 +37,14 @@ function preload() {
 
 // 4. Create Game Objects
 function create() {
-    // Add background (centered at middle of 400x600)
+    // Add background (Centered at 200, 300)
     this.add.image(200, 300, "sky").setDisplaySize(400, 600);
 
     // Create player sprite
     this.player = this.physics.add.sprite(100, 300, "gf");
-    this.player.setScale(1.1); // Adjusted scale for mobile visibility
+    
+    // Increased scale (1.2) to make her look "right-sized" on high-DPR mobile screens
+    this.player.setScale(1.2); 
     this.player.setCollideWorldBounds(true);
 
     // Input: Click / tap to jump
@@ -67,30 +69,38 @@ function create() {
     }, null, this);
 }
 
+// 6. Game Loop
 function update() {
-    // Optimization: Destroy objects that leave the screen to save memory
+    // Memory management: Destroy obstacles that leave the screen
     this.obstacles.getChildren().forEach(obstacle => {
-        if (obstacle.x < -50) {
+        if (obstacle.x < -100) {
             obstacle.destroy();
         }
     });
+
+    // Fall off screen = Game Over
+    if (this.player.y > 600 || this.player.y < 0) {
+        this.scene.restart();
+    }
 }
 
-// 6. Side-Scroller Obstacle Logic
+// 7. Side-Scroller Obstacle Logic
 function addObstacle() {
-    const gap = 220; // Size of the space she flies through
-    const spawnX = 450; 
+    const gap = 200; // The space she flies through
+    const spawnX = 500; 
     const gapCenter = Phaser.Math.Between(150, 450);
 
-    // Top Obstacle
+    // Top Obstacle (Alarm Clock)
     let top = this.obstacles.create(spawnX, gapCenter - (gap / 2), 'topObstacle');
     top.body.allowGravity = false;
     top.setVelocityX(-200);
-    top.setOrigin(0.5, 1); // Anchors to the bottom of the top obstacle
+    top.setOrigin(0.5, 1); // Anchors to bottom of the sprite
+    top.setScale(0.8); // Adjust as needed for your specific image
 
-    // Bottom Obstacle
+    // Bottom Obstacle (Coffee Mug)
     let bottom = this.obstacles.create(spawnX, gapCenter + (gap / 2), 'bottomObstacle');
     bottom.body.allowGravity = false;
     bottom.setVelocityX(-200);
-    bottom.setOrigin(0.5, 0); // Anchors to the top of the bottom obstacle
+    bottom.setOrigin(0.5, 0); // Anchors to top of the sprite
+    bottom.setScale(0.8); // Adjust as needed for your specific image
 }
