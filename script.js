@@ -3,10 +3,11 @@ const config = {
     type: Phaser.AUTO,
     width: 400,
     height: 600,
+    parent: "game-container", // Matches the ID in your index.html
     physics: {
-        default: 'arcade',
+        default: "arcade",
         arcade: {
-            gravity: { y: 900 }, // Gravity pulls her down
+            gravity: { y: 900 },
             debug: false
         }
     },
@@ -17,36 +18,55 @@ const config = {
     }
 };
 
-// 2. Start the Engine
+// 2. Start the Phaser Game
 const game = new Phaser.Game(config);
 
+// 3. Load Assets (Using relative paths for GitHub Pages)
 function preload() {
-    this.load.image('sky', './assets/sky.png');
-    this.load.image('gf', './assets/gf.png');
+    this.load.image("sky", "./assets/sky.png");
+    this.load.image("gf", "./assets/gf.png");
+    // this.load.image("alarm", "./assets/alarm.png"); // Uncomment this when you have the image!
 }
 
+// 4. Create Game Objects
 function create() {
-    // --- LAYERING MATTERS HERE ---
-    
-    // 3. Add the Background FIRST (so it stays in the back)
-    // We center it at (200, 300) and stretch it to fit the 400x600 screen
-    this.add.image(200, 300, 'sky').setDisplaySize(400, 600);
+    // Add background (centered)
+    this.add.image(200, 300, "sky").setDisplaySize(400, 600);
 
-    // 4. Add the Player SECOND (so she stays on top)
-    this.player = this.physics.add.sprite(100, 300, 'gf');
-    
-    // Adjust this number (0.1 to 0.5) until she fits the screen perfectly
-    this.player.setScale(1.1); 
-    
-    // Keep her from falling off the screen
+    // Create player sprite with physics
+    this.player = this.physics.add.sprite(100, 300, "gf");
+
+    // Adjust player size (1.1 makes her slightly larger than original)
+    this.player.setScale(1.1);
+
+    // Prevent player from leaving screen
     this.player.setCollideWorldBounds(true);
 
-    // 5. INPUT: Click or Tap to Jump
-    this.input.on('pointerdown', () => {
-        this.player.setVelocityY(-350); // Negative moves UP
+    // Input: Click / tap to jump
+    this.input.on("pointerdown", () => {
+        this.player.setVelocityY(-350);
+    });
+
+    // --- NEW: OBSTACLE GROUP ---
+    // This creates a "bucket" to hold all future alarm clocks
+    this.obstacles = this.physics.add.group();
+
+    // This timer will call 'addObstacle' every 1500ms (1.5 seconds)
+    this.time.addEvent({
+        delay: 1500,
+        callback: addObstacle,
+        callbackScope: this,
+        loop: true
     });
 }
 
+// 5. Game Loop
 function update() {
-    // This is where we will eventually move the "obstacles" (like alarm clocks)
+    // Logic for checking if obstacles go off-screen goes here
+}
+
+// 6. Spawn Obstacles
+function addObstacle() {
+    // We will fill this with "Alarm Clock" logic once your live link is working!
+    console.log("A new obstacle would spawn now!");
 }
