@@ -1,91 +1,138 @@
-// 1. Game Configuration
+// ===========================
+// Spencer's Dream Adventure
+// Mobile-friendly, scalable Phaser 3 template
+// ===========================
+
+// Game configuration
 const config = {
     type: Phaser.AUTO,
-    // REMOVED: resolution: window.devicePixelRatio
-    // Keeping 'resolution' often triggers the infinite loop in Chrome.
+    parent: "game-container",
+
+    width: 800,          // base game width
+    height: 600,         // base game height
+
     scale: {
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: 400,
-        height: 600,
-        parent: "game-container",
-        expandParent: false // STOPS Phaser from trying to resize your <div>
+        mode: Phaser.Scale.ENVELOP,   // fill screen while keeping aspect ratio
+        autoCenter: Phaser.Scale.CENTER_BOTH
     },
+
     physics: {
         default: "arcade",
         arcade: {
-            gravity: { y: 900 },
+            gravity: { y: 500 },
             debug: false
         }
     },
-    scene: {
-        preload: preload,
-        create: create,
-        update: update
-    }
+
+    scene: { preload, create, update }
 };
 
+// Create the Phaser game instance
 const game = new Phaser.Game(config);
 
+// ===========================
+// Global variables
+// ===========================
+let player;
+let cursors;
+let platforms;
+let stars;
+let score = 0;
+let scoreText;
+
+// ===========================
+// Preload assets
+// ===========================
 function preload() {
-    this.load.image("sky", "./assets/sky.png");
-    this.load.image("gf", "./assets/gf.png");
-    this.load.image("topObstacle", "./assets/alarm.png"); 
-    this.load.image("bottomObstacle", "./assets/coffee.png");
+    // Background
+    this.load.image('sky', 'assets/background.png');
+
+    // Platform
+    this.load.image('ground', 'assets/platform.png');
+
+    // Collectibles
+    this.load.image('star', 'assets/star.png');
+
+    // Player sprite (static for now, can add animations)
+    this.load.image('spencer', 'assets/spencer.png');
 }
 
+// ===========================
+// Create the scene
+// ===========================
 function create() {
-    this.add.image(200, 300, "sky").setDisplaySize(400, 600);
+    // Background
+    this.add.image(400, 300, 'sky').setScrollFactor(1);
 
-    this.player = this.physics.add.sprite(100, 300, "gf");
-    this.player.setScale(1.2); 
-    this.player.setCollideWorldBounds(true);
+    // Platforms group
+    platforms = this.physics.add.staticGroup();
 
-    this.input.on("pointerdown", () => {
-        this.player.setVelocityY(-350);
+    // Ground + floating platforms
+    platforms.create(400, 580, 'ground').setScale(2).refreshBody();
+    platforms.create(600, 400, 'ground');
+    platforms.create(50, 250, 'ground');
+    platforms.create(750, 220, 'ground');
+
+    // Player setup
+    player = this.physics.add.sprite(100, 450, 'spencer');
+    player.setBounce(0.2);
+    player.setCollideWorldBounds(true);
+
+    // Collide with platforms
+    this.physics.add.collider(player, platforms);
+
+    // Input
+    cursors = this.input.keyboard.createCursorKeys();
+
+    // Stars
+    stars = this.physics.add.group({
+        key: 'star',
+        repeat: 10,
+        setXY: { x: 12, y: 0, stepX: 70 }
     });
 
-    this.obstacles = this.physics.add.group();
+    this.physics.add.collider(stars, platforms);
 
-    this.time.addEvent({
-        delay: 1500,
-        callback: addObstacle,
-        callbackScope: this,
-        loop: true
+    // Collect stars
+    this.physics.add.overlap(player, stars, collectStar, null, this);
+
+    // Camera follows player
+    this.cameras.main.startFollow(player);
+    this.cameras.main.setBounds(0, 0, 2000, 600);  // world width
+    this.physics.world.setBounds(0, 0, 2000, 600);
+
+    // Score display
+    scoreText = this.add.text(16, 16, 'Score: 0', {
+        fontSize: '32px',
+        fill: '#ffffff'
     });
-
-    this.physics.add.collider(this.player, this.obstacles, () => {
-        this.scene.restart();
-    }, null, this);
+    scoreText.setScrollFactor(0); // keep score fixed on screen
 }
 
+// ===========================
+// Update loop
+// ===========================
 function update() {
-    // Memory cleanup
-    this.obstacles.getChildren().slice().forEach(obstacle => {
-        if (obstacle.x < -100) {
-            obstacle.destroy();
-        }
-    });
+    // Horizontal movement
+    if (cursors.left.isDown) {
+        player.setVelocityX(-200);
+    } else if (cursors.right.isDown) {
+        player.setVelocityX(200);
+    } else {
+        player.setVelocityX(0);
+    }
 
-    if (this.player.y > 600 || this.player.y < 0) {
-        this.scene.restart();
+    // Jump
+    if (cursors.up.isDown && player.body.touching.down) {
+        player.setVelocityY(-350);
     }
 }
 
-function addObstacle() {
-    const gap = 200; 
-    const spawnX = 500; 
-    const gapCenter = Phaser.Math.Between(150, 450);
-
-    let top = this.obstacles.create(spawnX, gapCenter - (gap / 2), 'topObstacle');
-    top.body.allowGravity = false;
-    top.setVelocityX(-200);
-    top.setOrigin(0.5, 1); 
-    top.setScale(0.8); 
-
-    let bottom = this.obstacles.create(spawnX, gapCenter + (gap / 2), 'bottomObstacle');
-    bottom.body.allowGravity = false;
-    bottom.setVelocityX(-200);
-    bottom.setOrigin(0.5, 0); 
-    bottom.setScale(0.8); 
+// ===========================
+// Collect star function
+// ===========================
+function collectStar(player, star) {
+    star.disableBody(true, true); // hide collected star
+    score += 10;
+    scoreText.setText('Score: ' + score);
 }
