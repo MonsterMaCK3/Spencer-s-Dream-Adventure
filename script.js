@@ -10,45 +10,49 @@ class StartScene extends Phaser.Scene {
     }
 
 create() {
-    // 1. Create the star particles first so they are BEHIND the text
+    // 1. Particle Starfield
     let pixel = this.make.graphics({ x: 0, y: 0, add: false });
     pixel.fillStyle(0xffffff, 1);
     pixel.fillRect(0, 0, 2, 2);
     pixel.generateTexture('starPixel', 2, 2);
 
-    // 2. Add the Background Image
+    // 2. The Background Image
     let bg = this.add.image(200, 300, "startBG").setDisplaySize(400, 600);
 
-    // 3. Particles
+    // 3. Drifting particles (placed behind the "glow" to look deep)
     this.add.particles(0, 0, 'starPixel', {
         x: { min: 0, max: 400 },
         y: { min: 0, max: 600 },
-        speed: { min: 5, max: 20 },
+        speed: { min: 5, max: 15 },
         scale: { start: 1, end: 0 },
-        alpha: { start: 0.6, end: 0 },
-        lifespan: 5000,
-        frequency: 150, 
+        alpha: { start: 0.4, end: 0 },
+        lifespan: 6000,
+        frequency: 200, 
         blendMode: 'ADD'
     });
 
-    // 4. BETTER BLINK: 
-    // We create a new text object that looks like your image's text 
-    // and place it exactly over the old one.
-    let startText = this.add.text(200, 465, "PRESS START", {
-        fontFamily: 'monospace', // Or "Press Start 2P" if you loaded it
-        fontSize: '22px',
-        fill: '#ffffff',
-        fontStyle: 'bold'
-    }).setOrigin(0.5);
+    // 4. THE FIX: Subtle "Glow" Blink
+    // Instead of text, we use a very faint white rectangle with a 'SCREEN' blend mode.
+    // This makes the existing "PRESS START" in your image look like it's lighting up
+    // without creating a second set of letters.
+    let glow = this.add.rectangle(200, 775, 180, 30, 0xffffff, 0.3);
+    glow.setBlendMode(Phaser.BlendModes.SCREEN);
 
-    // We make the background image's "PRESS START" stay static, 
-    // and we make THIS new one blink on top of it. 
-    // To make it look like the text is "flashing" white:
     this.tweens.add({
-        targets: startText,
+        targets: glow,
         alpha: 0,
-        duration: 600,
-        ease: 'Steps(1)', 
+        duration: 800,
+        ease: 'Linear',
+        yoyo: true,
+        loop: -1
+    });
+
+    // 5. Title Float
+    this.tweens.add({
+        targets: bg,
+        y: 305, 
+        duration: 4000,
+        ease: 'Sine.easeInOut',
         yoyo: true,
         loop: -1
     });
