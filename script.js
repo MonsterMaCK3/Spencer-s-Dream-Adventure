@@ -8,7 +8,7 @@ const config = {
     width: 400,
     height: 600,
     parent: "game-container"
-    
+
     },
 
     physics: {
@@ -62,9 +62,9 @@ function create() {
 }
 
 function update() {
-    this.obstacles.getChildren().slice().forEach(obstacle => {
-        if (obstacle.x < -100) {
-            obstacle.destroy();
+    this.obstacles.children.iterate(obstacle => {
+    if (obstacle.x < -100) {
+        obstacle.destroy();
         }
     });
 
