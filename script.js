@@ -3,14 +3,13 @@ const config = {
     // By removing the resolution property, we stop the browser from 
     // trying to double-scale the canvas on high-DPI screens.
     scale: {
-    mode: Phaser.Scale.ENVELOP,
-    autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: 400,
-    height: 600,
-    parent: "game-container"
-
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: 400,
+        height: 600,
+        parent: "game-container",
+        expandParent: false
     },
-
     physics: {
         default: "arcade",
         arcade: {
@@ -62,9 +61,9 @@ function create() {
 }
 
 function update() {
-    this.obstacles.children.iterate(obstacle => {
-    if (obstacle.x < -100) {
-        obstacle.destroy();
+    this.obstacles.getChildren().slice().forEach(obstacle => {
+        if (obstacle.x < -100) {
+            obstacle.destroy();
         }
     });
 
