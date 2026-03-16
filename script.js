@@ -1,15 +1,15 @@
 // 1. Game Configuration
 const config = {
     type: Phaser.AUTO,
-    // Helps with sharpness on high-DPI laptop screens
-    resolution: window.devicePixelRatio || 1,
+    // REMOVED: resolution: window.devicePixelRatio
+    // Keeping 'resolution' often triggers the infinite loop in Chrome.
     scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
         width: 400,
         height: 600,
-        parent: "game-container", // Let Phaser handle the parent again
-        expandParent: false       // CRITICAL: Stops Phaser from growing the <div>
+        parent: "game-container",
+        expandParent: false // STOPS Phaser from trying to resize your <div>
     },
     physics: {
         default: "arcade",
@@ -35,11 +35,8 @@ function preload() {
 }
 
 function create() {
-    // LOCK: This prevents the 'infinite growth' bug on laptops
-    // It tells Phaser to stick to the exact size of the container
-    this.scale.setParentSize(400, 600);
-
     this.add.image(200, 300, "sky").setDisplaySize(400, 600);
+
     this.player = this.physics.add.sprite(100, 300, "gf");
     this.player.setScale(1.2); 
     this.player.setCollideWorldBounds(true);
@@ -63,6 +60,7 @@ function create() {
 }
 
 function update() {
+    // Memory cleanup
     this.obstacles.getChildren().slice().forEach(obstacle => {
         if (obstacle.x < -100) {
             obstacle.destroy();
