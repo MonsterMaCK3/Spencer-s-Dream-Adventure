@@ -10,11 +10,51 @@ class StartScene extends Phaser.Scene {
     }
 
     create() {
-        // Center the image (200, 300 is center of 400x600 canvas)
-        // setDisplaySize ensures it fits your game's aspect ratio
-        this.add.image(200, 300, "startBG").setDisplaySize(400, 600);
+        // 1. Create a tiny 2x2 white pixel for the particles
+        let pixel = this.make.graphics({ x: 0, y: 0, add: false });
+        pixel.fillStyle(0xffffff, 1);
+        pixel.fillRect(0, 0, 2, 2);
+        pixel.generateTexture('starPixel', 2, 2);
 
-        // Transition to GameScene on any click or tap
+        // 2. Add the Background Image (Centered)
+        let bg = this.add.image(200, 300, "startBG").setDisplaySize(400, 600);
+
+        // 3. Add Drifting Dream Particles
+        // These will float randomly across the screen like twinkling stars
+        this.add.particles(0, 0, 'starPixel', {
+            x: { min: 0, max: 400 },
+            y: { min: 0, max: 600 },
+            speed: { min: 5, max: 20 },
+            scale: { start: 1, end: 0 },
+            alpha: { start: 0.6, end: 0 },
+            lifespan: 5000,
+            frequency: 150, 
+            blendMode: 'ADD'
+        });
+
+        // 4. Title Floating Animation (Subtle Bobbing)
+        this.tweens.add({
+            targets: bg,
+            y: 305, 
+            duration: 3000,
+            ease: 'Sine.easeInOut',
+            yoyo: true,
+            loop: -1
+        });
+
+        // 5. Classic Arcade "PRESS START" Blink
+        // This black rectangle covers the text in your image to make it "flicker"
+        let blinker = this.add.rectangle(200, 465, 180, 40, 0x000000);
+        this.tweens.add({
+            targets: blinker,
+            alpha: 0,
+            duration: 600,
+            ease: 'Steps(1)', 
+            yoyo: true,
+            loop: -1
+        });
+
+        // Click to Start
         this.input.on("pointerdown", () => {
             this.scene.start("GameScene");
         });
@@ -35,26 +75,18 @@ class GameScene extends Phaser.Scene {
     }
 
     create() {
-        // Force camera to logical size
         this.cameras.main.setSize(400, 600);
-        
-        // Background
         this.add.image(200, 300, "sky").setDisplaySize(400, 600);
         
-        // Player (Spencer)
         this.player = this.physics.add.sprite(100, 300, "gf");
         this.player.setScale(1.2); 
         this.player.setCollideWorldBounds(true);
 
-        // Jump Input
         this.input.on("pointerdown", () => {
             this.player.setVelocityY(-350);
         });
 
-        // Obstacles Group
         this.obstacles = this.physics.add.group();
-        
-        // Obstacle Spawning Timer
         this.time.addEvent({
             delay: 1500,
             callback: this.addObstacle,
@@ -62,21 +94,18 @@ class GameScene extends Phaser.Scene {
             loop: true
         });
 
-        // Collision Logic - Restarts current scene on hit
         this.physics.add.collider(this.player, this.obstacles, () => {
             this.scene.restart();
         }, null, this);
     }
 
     update() {
-        // Clean up off-screen obstacles
         this.obstacles.getChildren().slice().forEach(obstacle => {
             if (obstacle.x < -100) {
                 obstacle.destroy();
             }
         });
 
-        // Fail if player goes off top or bottom
         if (this.player.y > 600 || this.player.y < 0) {
             this.scene.restart();
         }
@@ -87,14 +116,12 @@ class GameScene extends Phaser.Scene {
         const spawnX = 500; 
         const gapCenter = Phaser.Math.Between(150, 450);
 
-        // Top Obstacle (Alarm)
         let top = this.obstacles.create(spawnX, gapCenter - (gap / 2), 'topObstacle');
         top.body.allowGravity = false;
         top.setVelocityX(-200);
         top.setOrigin(0.5, 1); 
         top.setScale(0.8); 
 
-        // Bottom Obstacle (Coffee)
         let bottom = this.obstacles.create(spawnX, gapCenter + (gap / 2), 'bottomObstacle');
         bottom.body.allowGravity = false;
         bottom.setVelocityX(-200);
@@ -113,7 +140,6 @@ const config = {
         height: 600,
         parent: "game-container"
     },
-    // pixelArt: true makes sure your 8-bit assets stay crisp
     pixelArt: true,
     physics: {
         default: "arcade",
@@ -122,12 +148,11 @@ const config = {
             debug: false
         }
     },
-    // The engine starts with the first scene in this list
     scene: [StartScene, GameScene]
 };
 
-// Start the game
 const game = new Phaser.Game(config);
+
 
 
 
