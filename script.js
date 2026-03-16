@@ -3,12 +3,11 @@ const config = {
     // By removing the resolution property, we stop the browser from 
     // trying to double-scale the canvas on high-DPI screens.
     scale: {
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: 400,
-        height: 600,
-        parent: "game-container",
-        expandParent: false
+    mode: Phaser.Scale.ENVELOP,
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    width: 400,
+    height: 600,
+    parent: "game-container"
     },
     physics: {
         default: "arcade",
