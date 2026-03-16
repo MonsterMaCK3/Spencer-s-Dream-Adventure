@@ -9,56 +9,55 @@ class StartScene extends Phaser.Scene {
         this.load.image("startBG", "./assets/start-screen.png");
     }
 
-    create() {
-        // 1. Create a tiny 2x2 white pixel for the particles
-        let pixel = this.make.graphics({ x: 0, y: 0, add: false });
-        pixel.fillStyle(0xffffff, 1);
-        pixel.fillRect(0, 0, 2, 2);
-        pixel.generateTexture('starPixel', 2, 2);
+create() {
+    // 1. Create the star particles first so they are BEHIND the text
+    let pixel = this.make.graphics({ x: 0, y: 0, add: false });
+    pixel.fillStyle(0xffffff, 1);
+    pixel.fillRect(0, 0, 2, 2);
+    pixel.generateTexture('starPixel', 2, 2);
 
-        // 2. Add the Background Image (Centered)
-        let bg = this.add.image(200, 300, "startBG").setDisplaySize(400, 600);
+    // 2. Add the Background Image
+    let bg = this.add.image(200, 300, "startBG").setDisplaySize(400, 600);
 
-        // 3. Add Drifting Dream Particles
-        // These will float randomly across the screen like twinkling stars
-        this.add.particles(0, 0, 'starPixel', {
-            x: { min: 0, max: 400 },
-            y: { min: 0, max: 600 },
-            speed: { min: 5, max: 20 },
-            scale: { start: 1, end: 0 },
-            alpha: { start: 0.6, end: 0 },
-            lifespan: 5000,
-            frequency: 150, 
-            blendMode: 'ADD'
-        });
+    // 3. Particles
+    this.add.particles(0, 0, 'starPixel', {
+        x: { min: 0, max: 400 },
+        y: { min: 0, max: 600 },
+        speed: { min: 5, max: 20 },
+        scale: { start: 1, end: 0 },
+        alpha: { start: 0.6, end: 0 },
+        lifespan: 5000,
+        frequency: 150, 
+        blendMode: 'ADD'
+    });
 
-        // 4. Title Floating Animation (Subtle Bobbing)
-        this.tweens.add({
-            targets: bg,
-            y: 305, 
-            duration: 3000,
-            ease: 'Sine.easeInOut',
-            yoyo: true,
-            loop: -1
-        });
+    // 4. BETTER BLINK: 
+    // We create a new text object that looks like your image's text 
+    // and place it exactly over the old one.
+    let startText = this.add.text(200, 465, "PRESS START", {
+        fontFamily: 'monospace', // Or "Press Start 2P" if you loaded it
+        fontSize: '22px',
+        fill: '#ffffff',
+        fontStyle: 'bold'
+    }).setOrigin(0.5);
 
-        // 5. Classic Arcade "PRESS START" Blink
-        // This black rectangle covers the text in your image to make it "flicker"
-        let blinker = this.add.rectangle(200, 465, 180, 40, 0x000000);
-        this.tweens.add({
-            targets: blinker,
-            alpha: 0,
-            duration: 600,
-            ease: 'Steps(1)', 
-            yoyo: true,
-            loop: -1
-        });
+    // We make the background image's "PRESS START" stay static, 
+    // and we make THIS new one blink on top of it. 
+    // To make it look like the text is "flashing" white:
+    this.tweens.add({
+        targets: startText,
+        alpha: 0,
+        duration: 600,
+        ease: 'Steps(1)', 
+        yoyo: true,
+        loop: -1
+    });
 
-        // Click to Start
-        this.input.on("pointerdown", () => {
-            this.scene.start("GameScene");
-        });
-    }
+    this.input.on("pointerdown", () => {
+        this.scene.start("GameScene");
+    });
+}
+
 }
 
 // --- MAIN GAMEPLAY SCENE ---
