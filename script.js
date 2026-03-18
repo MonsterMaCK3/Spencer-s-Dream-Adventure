@@ -6,56 +6,31 @@ class StartScene extends Phaser.Scene {
 
     preload() {
         this.load.image("startBG", "./assets/start-screen.png");
-        // Verify this file exists at this exact path
         this.load.audio("menuMusic", "./assets/menu-theme.mp3");
     }
 
     create() {
-        // 1. Generate Star Texture (Fixes green boxes)
+        // Generate Star Texture (Fixes green boxes)
         const graphics = this.make.graphics({ x: 0, y: 0, add: false });
         graphics.fillStyle(0xffffff, 1);
         graphics.fillRect(0, 0, 2, 2);
         graphics.generateTexture('starPixel', 2, 2);
         graphics.destroy();
 
-        // 2. Background & Particles
+        // Background & Particles
         let bg = this.add.image(200, 300, "startBG").setDisplaySize(400, 600);
         this.add.particles(0, 0, 'starPixel', {
-            x: { min: 0, max: 400 },
-            y: { min: 0, max: 600 },
-            speed: { min: 5, max: 15 },
-            scale: { start: 1.5, end: 0 },
-            alpha: { start: 0.6, end: 0 },
-            lifespan: 5000,
-            frequency: 150,
-            blendMode: 'ADD'
+            x: { min: 0, max: 400 }, y: { min: 0, max: 600 },
+            speed: { min: 5, max: 15 }, scale: { start: 1.5, end: 0 },
+            alpha: { start: 0.6, end: 0 }, lifespan: 5000,
+            frequency: 150, blendMode: 'ADD'
         });
 
-        // 3. Audio Setup with Browser Unlock
+        // Audio logic
         this.music = this.sound.add("menuMusic", { volume: 0.5, loop: true });
-        
-        // Function to handle the first user interaction to start audio
-        const startAudio = () => {
-            if (!this.music.isPlaying) {
-                this.music.play();
-            }
-        };
-
-        // Try playing immediately, otherwise play on first click
         this.music.play();
-        this.input.once('pointerdown', startAudio);
+        this.input.once('pointerdown', () => { if (!this.music.isPlaying) this.music.play(); });
 
-        // 4. Background Animation
-        this.tweens.add({
-            targets: bg,
-            y: 305,
-            duration: 4000,
-            ease: 'Sine.easeInOut',
-            yoyo: true,
-            loop: -1
-        });
-
-        // 5. Transition to Game (Clean Audio Stop)
         this.input.on("pointerdown", () => {
             if (this.music) this.music.stop();
             this.scene.start("GameScene");
@@ -78,19 +53,23 @@ class GameScene extends Phaser.Scene {
 
     create() {
         this.add.image(200, 300, "sky").setDisplaySize(400, 600);
+        
+        // Player setup
         this.player = this.physics.add.sprite(100, 300, "gf").setScale(1.2);
         this.player.setCollideWorldBounds(true);
 
-        this.input.on("pointerdown", () => {
-            this.player.setVelocityY(-350);
-        });
+        // Scoring setup
+        this.score = 0;
+        this.scoreText = this.add.text(200, 80, '0', {
+            fontSize: '64px', fill: '#ffffff', fontFamily: 'Arial Black'
+        }).setOrigin(0.5).setDepth(10);
+
+        this.input.on("pointerdown", () => { this.player.setVelocityY(-350); });
 
         this.obstacles = this.physics.add.group();
         this.time.addEvent({
-            delay: 1500,
-            callback: this.addObstacle,
-            callbackScope: this,
-            loop: true
+            delay: 1500, callback: this.addObstacle,
+            callbackScope: this, loop: true
         });
 
         this.physics.add.collider(this.player, this.obstacles, () => {
@@ -99,33 +78,43 @@ class GameScene extends Phaser.Scene {
     }
 
     update() {
-        this.obstacles.getChildren().forEach(obs => {
-            if (obs && obs.x < -100) obs.destroy();
+        this.obstacles.getChildren().forEach(obstacle => {
+            // Scoring Logic: Only check 'top' pipes to avoid double counting
+            if (obstacle.isTopPipe && !obstacle.hasScored && obstacle.x < this.player.x) {
+                obstacle.hasScored = true;
+                this.score++;
+                this.scoreText.setText(this.score);
+            }
+
+            if (obstacle.x < -100) obstacle.destroy();
         });
 
-        if (this.player.y > 600 || this.player.y < 0) {
-            this.scene.restart();
-        }
+        if (this.player.y > 600 || this.player.y < 0) this.scene.restart();
     }
 
     addObstacle() {
-        const gap = 180;
-        const spawnX = 450;
+        const gap = 170; 
+        const spawnX = 450; 
         const gapCenter = Phaser.Math.Between(150, 450);
 
+        // TOP PIPE
         let top = this.obstacles.create(spawnX, gapCenter - (gap / 2), 'topObstacle');
-        this.setupObstacle(top, 1);
+        this.setupPipe(top, 1);
+        top.isTopPipe = true; // Mark for scoring
+        top.hasScored = false;
 
+        // BOTTOM PIPE
         let bottom = this.obstacles.create(spawnX, gapCenter + (gap / 2), 'bottomObstacle');
-        this.setupObstacle(bottom, 0);
+        this.setupPipe(bottom, 0);
     }
 
-    setupObstacle(obj, originY) {
-        obj.body.allowGravity = false;
-        obj.setVelocityX(-200);
-        obj.setOrigin(0.5, originY);
-        obj.setScale(0.8);
-        obj.body.setSize(obj.width, obj.height);
+    setupPipe(pipe, originY) {
+        pipe.body.allowGravity = false;
+        pipe.setVelocityX(-200);
+        pipe.setOrigin(0.5, originY);
+        // Force height to 600 so it looks like a continuous pipe
+        pipe.setDisplaySize(60, 600); 
+        pipe.body.setSize(pipe.width, pipe.height);
     }
 }
 
@@ -133,12 +122,10 @@ class GameScene extends Phaser.Scene {
 const config = {
     type: Phaser.AUTO,
     scale: {
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: 400,
-        height: 600,
-        parent: "game-container"
+        mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: 400, height: 600, parent: "game-container"
     },
+    pixelArt: true, // Forces sharp pixel edges
     physics: {
         default: "arcade",
         arcade: { gravity: { y: 1000 }, debug: false }
