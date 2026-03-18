@@ -5,17 +5,14 @@ class StartScene extends Phaser.Scene {
     }
 
     preload() {
-        // Updated to match your filename
         this.load.image("startBG", "./assets/start-screen.png"); 
-        // Ensure you have a small white square or star image here
         this.load.image("starPixel", "./assets/star.png"); 
     }
 
     create() {
-        // 1. Background - Placed at center (200, 300) for a 400x600 canvas
         let bg = this.add.image(200, 300, "startBG").setDisplaySize(400, 600);
 
-        // 2. Drifting particles (Stars)
+        // Particle effect
         this.add.particles(0, 0, 'starPixel', {
             x: { min: 0, max: 400 },
             y: { min: 0, max: 600 },
@@ -27,30 +24,22 @@ class StartScene extends Phaser.Scene {
             blendMode: 'ADD'
         });
 
-        // 3. PRESS START Glow Effect
-        let glow = this.add.rectangle(200, 495, 120, 30, 0xffffff, 0.3);
-        glow.setBlendMode(Phaser.BlendModes.SCREEN);
+        // UPDATED GLOW BOX
+        // Positioned at Y: 485 to overlay your specific text location
+        // Width increased to 160 to cover "PRESS START"
+        let glow = this.add.rectangle(200, 485, 160, 40, 0xffffff, 0.2);
+        glow.setBlendMode(Phaser.BlendModes.ADD);
 
         this.tweens.add({
             targets: glow,
             alpha: 0,
-            duration: 800,
-            ease: 'Power1',
-            yoyo: true,
-            loop: -1
-        });
-
-        // 4. Subtle Title Float
-        this.tweens.add({
-            targets: bg,
-            y: 305, 
-            duration: 4000,
+            duration: 1000,
             ease: 'Sine.easeInOut',
             yoyo: true,
             loop: -1
         });
 
-        // 5. Transition to Game
+        // Scene transition
         this.input.on("pointerdown", () => {
             this.scene.start("GameScene");
         });
