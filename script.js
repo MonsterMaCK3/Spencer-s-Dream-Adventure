@@ -5,28 +5,29 @@ class StartScene extends Phaser.Scene {
     }
 
     preload() {
-        // Essential: Load assets used in this scene
-        this.load.image("startBG", "./assets/sky.png"); // Using sky as placeholder if needed
+        // Updated to match your filename
+        this.load.image("startBG", "./assets/start-screen.png"); 
+        // Ensure you have a small white square or star image here
         this.load.image("starPixel", "./assets/star.png"); 
     }
 
     create() {
-        // 2. Background Image
+        // 1. Background - Placed at center (200, 300) for a 400x600 canvas
         let bg = this.add.image(200, 300, "startBG").setDisplaySize(400, 600);
 
-        // 3. Drifting particles
+        // 2. Drifting particles (Stars)
         this.add.particles(0, 0, 'starPixel', {
             x: { min: 0, max: 400 },
             y: { min: 0, max: 600 },
             speed: { min: 5, max: 15 },
-            scale: { start: 1, end: 0 },
+            scale: { start: 0.5, end: 0 },
             alpha: { start: 0.4, end: 0 },
             lifespan: 6000,
             frequency: 200, 
             blendMode: 'ADD'
         });
 
-        // 4. PRESS START Glow
+        // 3. PRESS START Glow Effect
         let glow = this.add.rectangle(200, 495, 120, 30, 0xffffff, 0.3);
         glow.setBlendMode(Phaser.BlendModes.SCREEN);
 
@@ -34,12 +35,12 @@ class StartScene extends Phaser.Scene {
             targets: glow,
             alpha: 0,
             duration: 800,
-            ease: 'Linear',
+            ease: 'Power1',
             yoyo: true,
             loop: -1
         });
 
-        // 5. Title Float
+        // 4. Subtle Title Float
         this.tweens.add({
             targets: bg,
             y: 305, 
@@ -49,6 +50,7 @@ class StartScene extends Phaser.Scene {
             loop: -1
         });
 
+        // 5. Transition to Game
         this.input.on("pointerdown", () => {
             this.scene.start("GameScene");
         });
@@ -69,7 +71,6 @@ class GameScene extends Phaser.Scene {
     }
 
     create() {
-        this.cameras.main.setSize(400, 600);
         this.add.image(200, 300, "sky").setDisplaySize(400, 600);
         
         this.player = this.physics.add.sprite(100, 300, "gf");
@@ -94,9 +95,8 @@ class GameScene extends Phaser.Scene {
     }
 
     update() {
-        // Filter out destroyed objects and clean up off-screen
         this.obstacles.getChildren().forEach(obstacle => {
-            if (obstacle.x < -100) {
+            if (obstacle && obstacle.x < -100) {
                 obstacle.destroy();
             }
         });
@@ -111,26 +111,23 @@ class GameScene extends Phaser.Scene {
         const spawnX = 450; 
         const gapCenter = Phaser.Math.Between(150, 450);
 
-        // TOP OBSTACLE
         let top = this.obstacles.create(spawnX, gapCenter - (gap / 2), 'topObstacle');
-        this.setupObstaclePhysics(top, 1);
+        this.setupObstacle(top, 1);
 
-        // BOTTOM OBSTACLE
         let bottom = this.obstacles.create(spawnX, gapCenter + (gap / 2), 'bottomObstacle');
-        this.setupObstaclePhysics(bottom, 0);
+        this.setupObstacle(bottom, 0);
     }
 
-    setupObstaclePhysics(obj, originY) {
+    setupObstacle(obj, originY) {
         obj.body.allowGravity = false;
         obj.setVelocityX(-200);
         obj.setOrigin(0.5, originY); 
         obj.setScale(0.8);
-        // Important: Reset hitboxes to match the new 0.8 scale
         obj.body.setSize(obj.width, obj.height);
     }
 }
 
-// --- GAME CONFIGURATION ---
+// --- CONFIG ---
 const config = {
     type: Phaser.AUTO,
     scale: {
@@ -140,13 +137,9 @@ const config = {
         height: 600,
         parent: "game-container"
     },
-    pixelArt: true,
     physics: {
         default: "arcade",
-        arcade: {
-            gravity: { y: 1000 },
-            debug: false 
-        }
+        arcade: { gravity: { y: 1000 }, debug: false }
     },
     scene: [StartScene, GameScene]
 };
