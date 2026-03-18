@@ -10,9 +10,10 @@ class StartScene extends Phaser.Scene {
     }
 
     create() {
+        // 1. Background centered at 200, 300
         let bg = this.add.image(200, 300, "startBG").setDisplaySize(400, 600);
 
-        // Particle effect
+        // 2. Drifting particles
         this.add.particles(0, 0, 'starPixel', {
             x: { min: 0, max: 400 },
             y: { min: 0, max: 600 },
@@ -24,22 +25,17 @@ class StartScene extends Phaser.Scene {
             blendMode: 'ADD'
         });
 
-        // UPDATED GLOW BOX
-        // Positioned at Y: 485 to overlay your specific text location
-        // Width increased to 160 to cover "PRESS START"
-        let glow = this.add.rectangle(200, 485, 160, 40, 0xffffff, 0.2);
-        glow.setBlendMode(Phaser.BlendModes.ADD);
-
+        // 3. Title Float Animation
         this.tweens.add({
-            targets: glow,
-            alpha: 0,
-            duration: 1000,
+            targets: bg,
+            y: 305, 
+            duration: 4000,
             ease: 'Sine.easeInOut',
             yoyo: true,
             loop: -1
         });
 
-        // Scene transition
+        // 4. Click anywhere to start
         this.input.on("pointerdown", () => {
             this.scene.start("GameScene");
         });
