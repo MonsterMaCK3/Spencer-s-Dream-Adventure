@@ -5,7 +5,6 @@ class StartScene extends Phaser.Scene {
     }
 
     preload() {
-        // Load the background image
         this.load.image("startBG", "./assets/start-screen.png");
     }
 
@@ -31,8 +30,9 @@ class StartScene extends Phaser.Scene {
             blendMode: 'ADD'
         });
 
-        // 4. Subtle "Glow" Blink (Adjusted Y to 500 so it's visible on screen)
-        let glow = this.add.rectangle(200, 500, 180, 30, 0xffffff, 0.3);
+        // 4. PRESS START Glow
+        // Positioned at Y: 495 to match the text in your provided image
+        let glow = this.add.rectangle(200, 495, 120, 30, 0xffffff, 0.3);
         glow.setBlendMode(Phaser.BlendModes.SCREEN);
 
         this.tweens.add({
@@ -74,7 +74,6 @@ class GameScene extends Phaser.Scene {
     }
 
     create() {
-        // Force camera to sync with logical size
         this.cameras.main.setSize(400, 600);
         this.add.image(200, 300, "sky").setDisplaySize(400, 600);
         
@@ -100,41 +99,39 @@ class GameScene extends Phaser.Scene {
     }
 
     update() {
-        // Clean up off-screen obstacles
         this.obstacles.getChildren().slice().forEach(obstacle => {
             if (obstacle.x < -100) {
                 obstacle.destroy();
             }
         });
 
-        // Fail conditions
         if (this.player.y > 600 || this.player.y < 0) {
             this.scene.restart();
         }
     }
 
     addObstacle() {
-        const gap = 200; 
-        const spawnX = 500; 
+        const gap = 180; 
+        const spawnX = 450; 
         const gapCenter = Phaser.Math.Between(150, 450);
 
-        // Top Obstacle (Alarm)
+        // --- TOP OBSTACLE (ALARM) ---
         let top = this.obstacles.create(spawnX, gapCenter - (gap / 2), 'topObstacle');
         top.body.allowGravity = false;
         top.setVelocityX(-200);
         top.setOrigin(0.5, 1); 
         top.setScale(0.8);
-        // FIX: Update physics body to match scaled visual size
-        top.setBodySize(top.width * 0.8, top.height * 0.8);
+        // FIX: Rescale physics body to match visual size
+        top.body.setSize(top.width, top.height);
 
-        // Bottom Obstacle (Coffee)
+        // --- BOTTOM OBSTACLE (COFFEE) ---
         let bottom = this.obstacles.create(spawnX, gapCenter + (gap / 2), 'bottomObstacle');
         bottom.body.allowGravity = false;
         bottom.setVelocityX(-200);
         bottom.setOrigin(0.5, 0); 
         bottom.setScale(0.8); 
-        // FIX: Update physics body to match scaled visual size
-        bottom.setBodySize(bottom.width * 0.8, bottom.height * 0.8);
+        // FIX: Rescale physics body to match visual size
+        bottom.body.setSize(bottom.width, bottom.height);
     }
 }
 
@@ -142,7 +139,7 @@ class GameScene extends Phaser.Scene {
 const config = {
     type: Phaser.AUTO,
     scale: {
-        mode: Phaser.Scale.ENVELOP,
+        mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
         width: 400,
         height: 600,
@@ -152,8 +149,8 @@ const config = {
     physics: {
         default: "arcade",
         arcade: {
-            gravity: { y: 900 },
-            debug: false // Set to TRUE if you want to see the new blue hitboxes
+            gravity: { y: 1000 },
+            debug: false // Set to true to see if hitboxes align with the coffee
         }
     },
     scene: [StartScene, GameScene]
