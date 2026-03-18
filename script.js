@@ -1,31 +1,37 @@
-// --- START MENU SCENE ---
 class StartScene extends Phaser.Scene {
     constructor() {
         super("StartScene");
     }
 
     preload() {
+        // Only load the background; no external star image needed
         this.load.image("startBG", "./assets/start-screen.png"); 
-        this.load.image("starPixel", "./assets/star.png"); 
     }
 
     create() {
-        // 1. Background centered at 200, 300
+        // 1. Generate the Star Texture programmatically
+        const graphics = this.make.graphics({ x: 0, y: 0, add: false });
+        graphics.fillStyle(0xffffff, 1);
+        graphics.fillRect(0, 0, 2, 2);
+        graphics.generateTexture('starPixel', 2, 2);
+        graphics.destroy(); // Clean up the temporary graphics object
+
+        // 2. Background
         let bg = this.add.image(200, 300, "startBG").setDisplaySize(400, 600);
 
-        // 2. Drifting particles
+        // 3. Drifting particles (Now using the generated 'starPixel')
         this.add.particles(0, 0, 'starPixel', {
             x: { min: 0, max: 400 },
             y: { min: 0, max: 600 },
             speed: { min: 5, max: 15 },
-            scale: { start: 0.5, end: 0 },
-            alpha: { start: 0.4, end: 0 },
-            lifespan: 6000,
-            frequency: 200, 
+            scale: { start: 1.5, end: 0 }, 
+            alpha: { start: 0.6, end: 0 },
+            lifespan: 5000,
+            frequency: 150, 
             blendMode: 'ADD'
         });
 
-        // 3. Title Float Animation
+        // 4. Subtle Title Float
         this.tweens.add({
             targets: bg,
             y: 305, 
@@ -35,7 +41,7 @@ class StartScene extends Phaser.Scene {
             loop: -1
         });
 
-        // 4. Click anywhere to start
+        // 5. Start Game Listener
         this.input.on("pointerdown", () => {
             this.scene.start("GameScene");
         });
