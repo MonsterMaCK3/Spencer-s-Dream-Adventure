@@ -1,48 +1,63 @@
+// --- START MENU SCENE ---
 class StartScene extends Phaser.Scene {
     constructor() {
         super("StartScene");
     }
 
     preload() {
-        // Only load the background; no external star image needed
-        this.load.image("startBG", "./assets/start-screen.png"); 
+        this.load.image("startBG", "./assets/start-screen.png");
+        // Verify this file exists at this exact path
+        this.load.audio("menuMusic", "./assets/menu-theme.mp3");
     }
 
     create() {
-        // 1. Generate the Star Texture programmatically
+        // 1. Generate Star Texture (Fixes green boxes)
         const graphics = this.make.graphics({ x: 0, y: 0, add: false });
         graphics.fillStyle(0xffffff, 1);
         graphics.fillRect(0, 0, 2, 2);
         graphics.generateTexture('starPixel', 2, 2);
-        graphics.destroy(); // Clean up the temporary graphics object
+        graphics.destroy();
 
-        // 2. Background
+        // 2. Background & Particles
         let bg = this.add.image(200, 300, "startBG").setDisplaySize(400, 600);
-
-        // 3. Drifting particles (Now using the generated 'starPixel')
         this.add.particles(0, 0, 'starPixel', {
             x: { min: 0, max: 400 },
             y: { min: 0, max: 600 },
             speed: { min: 5, max: 15 },
-            scale: { start: 1.5, end: 0 }, 
+            scale: { start: 1.5, end: 0 },
             alpha: { start: 0.6, end: 0 },
             lifespan: 5000,
-            frequency: 150, 
+            frequency: 150,
             blendMode: 'ADD'
         });
 
-        // 4. Subtle Title Float
+        // 3. Audio Setup with Browser Unlock
+        this.music = this.sound.add("menuMusic", { volume: 0.5, loop: true });
+        
+        // Function to handle the first user interaction to start audio
+        const startAudio = () => {
+            if (!this.music.isPlaying) {
+                this.music.play();
+            }
+        };
+
+        // Try playing immediately, otherwise play on first click
+        this.music.play();
+        this.input.once('pointerdown', startAudio);
+
+        // 4. Background Animation
         this.tweens.add({
             targets: bg,
-            y: 305, 
+            y: 305,
             duration: 4000,
             ease: 'Sine.easeInOut',
             yoyo: true,
             loop: -1
         });
 
-        // 5. Start Game Listener
+        // 5. Transition to Game (Clean Audio Stop)
         this.input.on("pointerdown", () => {
+            if (this.music) this.music.stop();
             this.scene.start("GameScene");
         });
     }
@@ -63,9 +78,7 @@ class GameScene extends Phaser.Scene {
 
     create() {
         this.add.image(200, 300, "sky").setDisplaySize(400, 600);
-        
-        this.player = this.physics.add.sprite(100, 300, "gf");
-        this.player.setScale(1.2); 
+        this.player = this.physics.add.sprite(100, 300, "gf").setScale(1.2);
         this.player.setCollideWorldBounds(true);
 
         this.input.on("pointerdown", () => {
@@ -86,10 +99,8 @@ class GameScene extends Phaser.Scene {
     }
 
     update() {
-        this.obstacles.getChildren().forEach(obstacle => {
-            if (obstacle && obstacle.x < -100) {
-                obstacle.destroy();
-            }
+        this.obstacles.getChildren().forEach(obs => {
+            if (obs && obs.x < -100) obs.destroy();
         });
 
         if (this.player.y > 600 || this.player.y < 0) {
@@ -98,8 +109,8 @@ class GameScene extends Phaser.Scene {
     }
 
     addObstacle() {
-        const gap = 180; 
-        const spawnX = 450; 
+        const gap = 180;
+        const spawnX = 450;
         const gapCenter = Phaser.Math.Between(150, 450);
 
         let top = this.obstacles.create(spawnX, gapCenter - (gap / 2), 'topObstacle');
@@ -112,7 +123,7 @@ class GameScene extends Phaser.Scene {
     setupObstacle(obj, originY) {
         obj.body.allowGravity = false;
         obj.setVelocityX(-200);
-        obj.setOrigin(0.5, originY); 
+        obj.setOrigin(0.5, originY);
         obj.setScale(0.8);
         obj.body.setSize(obj.width, obj.height);
     }
