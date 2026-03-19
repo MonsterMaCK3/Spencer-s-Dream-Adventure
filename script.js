@@ -30,7 +30,7 @@ class GameScene extends Phaser.Scene {
     preload() {
         this.load.image("cityBG", "./assets/svPmCV.png");
         this.load.image("gf", "./assets/gf.png");
-        this.load.image("pipe", "./assets/38-388476_flappy-bird-pipes-png-bottle.jpg");
+        this.load.image("pipe", "./assets/pipe.png");
     }
 
     create() {
